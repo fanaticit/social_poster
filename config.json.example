@@ -1,0 +1,29 @@
+{
+  "accounts": {
+    "youtube": {
+      "english": {
+        "channel_id": "YOUR_ENGLISH_CHANNEL_ID",
+        "token_file": "credentials/youtube_tokens/english_token.json"
+      },
+      "japanese": {
+        "channel_id": "YOUR_JAPANESE_CHANNEL_ID",
+        "token_file": "credentials/youtube_tokens/japanese_token.json"
+      }
+    },
+    "tiktok": {
+      "english": {
+        "user_id": "YOUR_ENGLISH_TIKTOK_USER_ID",
+        "token_file": "credentials/tiktok_tokens/english_token.json"
+      },
+      "japanese": {
+        "user_id": "YOUR_JAPANESE_TIKTOK_USER_ID",
+        "token_file": "credentials/tiktok_tokens/japanese_token.json"
+      }
+    }
+  },
+  "upload_settings": {
+    "video_privacy": "PUBLIC",
+    "youtube_category": "20",
+    "max_retries": 3
+  }
+}

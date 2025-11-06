@@ -1,0 +1,16 @@
+{
+  "video_file": "videos/game_news_nov6.mp4",
+  "english": {
+    "title": "New Character Announcement - Game Title",
+    "description": "Exciting news! Check out the new character coming to Game Title. Subscribe for more updates!",
+    "tags": ["game", "gaming", "announcement", "newcharacter"],
+    "hashtags": "#gaming #gamesnews #newcharacter #gameannouncement"
+  },
+  "japanese": {
+    "title": "新キャラクター発表 - ゲームタイトル",
+    "description": "新しいキャラクターがゲームタイトルに登場します。詳細はビデオをチェック！",
+    "tags": ["ゲーム", "ゲーム実況", "発表", "新キャラ"],
+    "hashtags": "#ゲーム #ゲーム動画 #新キャラ #ゲーム発表"
+  },
+  "platforms": ["youtube_english", "youtube_japanese", "tiktok_english", "tiktok_japanese"]
+}

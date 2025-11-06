@@ -1,0 +1,34 @@
+# Environment
+venv/
+.env
+
+# Credentials and tokens
+credentials/
+*.json
+
+# Except templates
+!config.json.example
+!video_metadata.json.example
+
+# Logs
+logs/
+
+# Videos
+videos/*.mp4
+videos/*.mov
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
