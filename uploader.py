@@ -170,33 +170,124 @@ class UploadOrchestrator:
         Returns:
             Upload result dictionary
         """
-        for attempt in range(max_retries):
-            try:
-                if attempt > 0:
-                    print(f"\n[{platform}] Retry attempt {attempt + 1}/{max_retries}")
+        # Authenticate ONCE before retries (don't re-auth on each retry)
+        try:
+            uploader = self._get_authenticated_uploader(platform)
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f"Authentication failed: {str(e)}",
+                'platform': platform
+            }
 
-                result = self._do_upload(platform, video_file, metadata)
+        # Attempt upload once (no retries)
+        try:
+            result = self._do_upload_with_uploader(platform, video_file, metadata, uploader)
+            return result
 
-                if result['success']:
-                    return result
-                elif attempt < max_retries - 1:
-                    print(f"[{platform}] Upload failed, retrying...")
-                else:
-                    return result
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'platform': platform
+            }
 
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    print(f"[{platform}] Error: {e}, retrying...")
-                else:
-                    return {
-                        'success': False,
-                        'error': str(e),
-                        'platform': platform
-                    }
+    def _get_authenticated_uploader(self, platform):
+        """
+        Get authenticated uploader for a platform (auth happens once here)
+
+        Args:
+            platform: Platform identifier
+
+        Returns:
+            Tuple of (uploader, platform_type, language, lang_metadata)
+        """
+        parts = platform.split('_')
+        platform_type = parts[0]  # 'youtube' or 'tiktok'
+        language = parts[1] if len(parts) > 1 else 'english'
+
+        if platform_type == 'youtube':
+            account_config = self.config['accounts']['youtube'][language]
+            credentials = self.oauth_handler.get_youtube_credentials(
+                language,
+                account_config['token_file']
+            )
+            from youtube_uploader import YouTubeUploader
+            return (YouTubeUploader(credentials), platform_type, language)
+
+        elif platform_type == 'tiktok':
+            account_config = self.config['accounts']['tiktok'][language]
+            client_key = os.getenv('TIKTOK_CLIENT_ID')
+            client_secret = os.getenv('TIKTOK_CLIENT_SECRET')
+
+            if not client_key or not client_secret:
+                raise ValueError('TikTok credentials not found in .env file')
+
+            token_data = self.oauth_handler.get_tiktok_credentials(
+                language,
+                account_config['token_file'],
+                client_key,
+                client_secret
+            )
+
+            access_token = token_data.get('access_token')
+            if not access_token:
+                raise ValueError('Failed to get TikTok access token')
+
+            from tiktok_uploader import TikTokUploader
+            return (TikTokUploader(access_token), platform_type, language)
+
+        else:
+            raise ValueError(f"Unknown platform type: {platform_type}")
+
+    def _do_upload_with_uploader(self, platform, video_file, metadata, uploader_tuple):
+        """
+        Perform actual upload using pre-authenticated uploader
+
+        Args:
+            platform: Platform identifier
+            video_file: Path to video file
+            metadata: Video metadata dictionary
+            uploader_tuple: Tuple from _get_authenticated_uploader
+
+        Returns:
+            Upload result dictionary
+        """
+        uploader, platform_type, language = uploader_tuple
+        lang_metadata = metadata.get(language, {})
+
+        if platform_type == 'youtube':
+            category_id = self.config.get('upload_settings', {}).get('youtube_category', '20')
+            privacy = self.config.get('upload_settings', {}).get('video_privacy', 'public')
+
+            result = uploader.upload_video(
+                video_file=video_file,
+                title=lang_metadata.get('title', 'Untitled'),
+                description=lang_metadata.get('description', ''),
+                tags=lang_metadata.get('tags', []),
+                category_id=category_id,
+                privacy_status=privacy
+            )
+            result['account'] = language
+            return result
+
+        elif platform_type == 'tiktok':
+            title = lang_metadata.get('title', 'Untitled')
+            hashtags = lang_metadata.get('hashtags', '')
+            caption = f"{title} {hashtags}".strip()
+
+            result = uploader.upload_video(
+                video_file=video_file,
+                title=caption,
+                description=lang_metadata.get('description', ''),
+                privacy_level='SELF_ONLY'  # Sandbox apps can only post private videos
+            )
+            result['account'] = language
+            return result
 
     def _do_upload(self, platform, video_file, metadata):
         """
-        Perform actual upload to platform
+        Perform actual upload to platform (OLD METHOD - kept for compatibility)
 
         Args:
             platform: Platform identifier
@@ -294,7 +385,7 @@ class UploadOrchestrator:
             video_file=video_file,
             title=caption,
             description=metadata.get('description', ''),
-            privacy_level='PUBLIC_TO_EVERYONE'
+            privacy_level='SELF_ONLY'  # Sandbox apps can only post private videos
         )
 
         result['account'] = account_name

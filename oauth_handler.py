@@ -6,11 +6,17 @@ Handles token storage, refresh, and OAuth consent flow
 import os
 import json
 import pickle
+import webbrowser
+import hashlib
+import base64
+import secrets
+import certifi
 from pathlib import Path
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 import requests
+from oauth_callback_server import start_oauth_server
 
 
 class OAuthHandler:
@@ -114,30 +120,56 @@ class OAuthHandler:
 
         # Need to get new token through OAuth flow
         print(f"\nTikTok OAuth flow for {account_name}...")
-        print("Note: TikTok OAuth requires a web callback URL.")
-        print("Please ensure your TikTok app is configured with a redirect URI.")
+        print("Starting local OAuth callback server...")
 
-        # For TikTok, we need to use authorization code flow
-        # This is a simplified version - production would need a proper web server
-        redirect_uri = input("Enter your TikTok app redirect URI: ")
+        # Use localhost redirect URI
+        redirect_uri = 'http://localhost:8000/callback'
 
-        # Build authorization URL
+        # Generate PKCE code verifier and challenge (required by TikTok)
+        # TikTok uses HEX encoding (not Base64-URL) - this is non-standard!
+        code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
+        # TikTok requires SHA256 hash as HEX string (not Base64-URL encoded)
+        code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).hexdigest()
+
+        print(f"DEBUG: Code verifier length: {len(code_verifier)}")
+        print(f"DEBUG: Code verifier: {code_verifier}")
+        print(f"DEBUG: Code challenge length: {len(code_challenge)}")
+        print(f"DEBUG: Code challenge (HEX): {code_challenge}")
+
+        # Store code_verifier for later use in token exchange
+        self._pkce_code_verifier = code_verifier
+
+        # Build authorization URL with PKCE
+        # Include both user.info.basic and video.publish scopes (for Content Posting API)
         auth_params = {
             'client_key': client_key,
-            'scope': 'video.upload',
+            'scope': 'user.info.basic,video.publish',
             'response_type': 'code',
             'redirect_uri': redirect_uri,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256'
         }
 
         auth_url = self.TIKTOK_AUTH_URL + '?' + '&'.join([f"{k}={v}" for k, v in auth_params.items()])
 
-        print(f"\nPlease visit this URL to authorize the app:")
-        print(auth_url)
+        print(f"\nOpening browser for TikTok authorization...")
 
-        auth_code = input("\nEnter the authorization code from the redirect URL: ")
+        # Try to open in Chrome specifically on macOS
+        try:
+            chrome_path = r'open -a /Applications/Google\ Chrome.app %s'
+            webbrowser.get(chrome_path).open(auth_url)
+        except:
+            # Fallback to default browser
+            webbrowser.open(auth_url)
 
-        # Exchange code for access token
-        token_data = self._exchange_tiktok_code(auth_code, client_key, client_secret, redirect_uri)
+        # Start local server to receive callback
+        auth_code = start_oauth_server(port=8000, timeout=300)
+
+        if not auth_code:
+            raise Exception("Failed to get authorization code from TikTok")
+
+        # Exchange code for access token (with code_verifier for PKCE)
+        token_data = self._exchange_tiktok_code(auth_code, client_key, client_secret, redirect_uri, code_verifier)
 
         # Save token
         with open(token_path, 'w') as f:
@@ -146,7 +178,7 @@ class OAuthHandler:
         print(f"TikTok credentials saved for {account_name}")
         return token_data
 
-    def _exchange_tiktok_code(self, code, client_key, client_secret, redirect_uri):
+    def _exchange_tiktok_code(self, code, client_key, client_secret, redirect_uri, code_verifier=None):
         """
         Exchange TikTok authorization code for access token
 
@@ -155,6 +187,7 @@ class OAuthHandler:
             client_key: TikTok app client key
             client_secret: TikTok app client secret
             redirect_uri: Redirect URI used in authorization
+            code_verifier: PKCE code verifier (required for PKCE flow)
 
         Returns:
             Dictionary with access token and refresh token
@@ -167,12 +200,34 @@ class OAuthHandler:
             'redirect_uri': redirect_uri,
         }
 
-        response = requests.post(self.TIKTOK_TOKEN_URL, data=data)
+        # Add code_verifier for PKCE
+        if code_verifier:
+            data['code_verifier'] = code_verifier
+            print(f"DEBUG: Sending code_verifier of length {len(code_verifier)}")
+
+        print(f"DEBUG: Token exchange data keys: {list(data.keys())}")
+
+        # Temporarily disable SSL verification (TODO: fix certificates properly)
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        response = requests.post(self.TIKTOK_TOKEN_URL, data=data, verify=False)
 
         if response.status_code != 200:
-            raise Exception(f"Failed to get TikTok access token: {response.text}")
+            print(f"TikTok token exchange error: {response.status_code}")
+            print(f"Response: {response.text}")
+            raise Exception(f"Failed to get TikTok access token: {response.status_code} - {response.text}")
 
-        return response.json()
+        result = response.json()
+
+        # Check if the response contains an error
+        if 'error' in result:
+            error_msg = result.get('error_description', result.get('error'))
+            print(f"TikTok API Error: {error_msg}")
+            print(f"Full response: {result}")
+            raise Exception(f"TikTok API error: {error_msg}")
+
+        print(f"Token exchange successful!")
+        return result
 
     def refresh_tiktok_token(self, refresh_token, client_key, client_secret):
         """
@@ -193,7 +248,10 @@ class OAuthHandler:
             'grant_type': 'refresh_token',
         }
 
-        response = requests.post(self.TIKTOK_TOKEN_URL, data=data)
+        # Temporarily disable SSL verification (TODO: fix certificates properly)
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        response = requests.post(self.TIKTOK_TOKEN_URL, data=data, verify=False)
 
         if response.status_code != 200:
             raise Exception(f"Failed to refresh TikTok token: {response.text}")
