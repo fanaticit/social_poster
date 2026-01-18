@@ -246,9 +246,9 @@ class UploadOrchestrator:
 
         Args:
             platform: Platform identifier
-            video_file: Path to video file
+            video_file: Path to video file (default, can be overridden by language-specific file)
             metadata: Video metadata dictionary
-            uploader_tuple: Tuple from _get_authenticated_uploader
+            uploader_tuple: Tuple from _get_authenticated uploader
 
         Returns:
             Upload result dictionary
@@ -256,14 +256,27 @@ class UploadOrchestrator:
         uploader, platform_type, language = uploader_tuple
         lang_metadata = metadata.get(language, {})
 
+        # Use language-specific video file if specified, otherwise use default
+        if 'video_file' in lang_metadata:
+            video_file = lang_metadata['video_file']
+            print(f"Using language-specific video file: {video_file}")
+
         if platform_type == 'youtube':
             category_id = self.config.get('upload_settings', {}).get('youtube_category', '20')
             privacy = self.config.get('upload_settings', {}).get('video_privacy', 'public')
 
+            # Combine description with YouTube hashtags
+            description = lang_metadata.get('description', '')
+            youtube_hashtags = lang_metadata.get('youtube_hashtags', '')
+            if youtube_hashtags:
+                full_description = f"{description}\n\n{youtube_hashtags}".strip()
+            else:
+                full_description = description
+
             result = uploader.upload_video(
                 video_file=video_file,
                 title=lang_metadata.get('title', 'Untitled'),
-                description=lang_metadata.get('description', ''),
+                description=full_description,
                 tags=lang_metadata.get('tags', []),
                 category_id=category_id,
                 privacy_status=privacy
@@ -273,7 +286,7 @@ class UploadOrchestrator:
 
         elif platform_type == 'tiktok':
             title = lang_metadata.get('title', 'Untitled')
-            hashtags = lang_metadata.get('hashtags', '')
+            hashtags = lang_metadata.get('tiktok_hashtags', '')
             caption = f"{title} {hashtags}".strip()
 
             result = uploader.upload_video(

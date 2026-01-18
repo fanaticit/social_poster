@@ -30,7 +30,7 @@ class OAuthHandler:
         self.credentials_dir = Path(credentials_dir)
         self.credentials_dir.mkdir(parents=True, exist_ok=True)
 
-    def get_youtube_credentials(self, account_name, token_file, credentials_file='credentials/youtube_credentials.json'):
+    def get_youtube_credentials(self, account_name, token_file, credentials_file='credentials/youtube_tokens/youtube_credentials.json'):
         """
         Get or create YouTube OAuth credentials for a specific account
 
@@ -72,8 +72,18 @@ class OAuthHandler:
                         f"Please download OAuth credentials from Google Cloud Console."
                     )
 
-                print(f"\nStarting OAuth flow for YouTube {account_name}...")
+                print(f"\n{'='*60}")
+                print(f"YouTube Authentication Required: {account_name.upper()}")
+                print(f"{'='*60}")
                 print(f"A browser window will open for authentication.")
+                print(f"")
+                print(f"⚠️  IMPORTANT: Log in with your {account_name.upper()} YouTube account!")
+                print(f"")
+                print(f"If the wrong account is already logged in to Chrome:")
+                print(f"  1. Look for 'Choose an account' or profile icon")
+                print(f"  2. Click 'Use another account' or 'Add account'")
+                print(f"  3. Log in with the CORRECT {account_name.upper()} account")
+                print(f"{'='*60}\n")
 
                 flow = InstalledAppFlow.from_client_secrets_file(
                     credentials_file,
