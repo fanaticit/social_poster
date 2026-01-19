@@ -1,12 +1,28 @@
-Don't just swing that weapon around like you don't know how, pack some Sonic Bombs and let's head into the desert. It's a new week in Monster Hunter Now, what is there to hunt and how do I maximise my rewards and is there something new to build? If you are new to the game it's a good opertunity to get a max level weapon to help you get started.
+Don’t just swing that weapon around like you don’t know how—pack some Sonic Bombs and head into the desert.
+It’s a new week in Monster Hunter Now, so what’s on the hunt list, how can you maximise your rewards, and is there something new to craft?
+If you’re new to the game, this is a great opportunity to unlock a max-level weapon to help you get started.
 
-It's the debut of Riftborne Diablos and the style customization for weapons we already have from Diablos materials. They are adding Sword and Shield, Great Sword, Lance, Gunlance, and Heavy Bowgun Diablos versions as well. The skill that comes with them Heroics will work well with the Lance, Gunlance and existing Charge Blade as these let you take a little damage during the fight that can take you below 29% health and activate Heroics.
+Riftborne Diablos arrives – and with it, new gear.
+This week marks the debut of Riftborne Diablos, alongside style customisation for existing weapons crafted from Diablos materials. New Diablos weapons are now available for the Sword and Shield, Great Sword, Lance, Gunlance and Heavy Bowgun.
 
-Heavy Bow Gun gets their style customization as well. Guard Reload will let you reload your bowgun while in a guard state, and Crouching Shot will let you prioritizes offense, allowing you to fire more ammo than normal. Lets have fun trying out the different way to play.
-There will a Heavy Bow Gun style quest to get a boost of Diablos and riftborne materials.
+The accompanying skill, Heroics, pairs particularly well with the Lance, Gunlance, and existing Charge Blade. These weapons allow you to absorb some damage in battle, potentially reducing your health below 29%—which then activates Heroics for a damage boost.
 
-Other monster activity that come with bonus to their rewards are Brute Tigrex, Goss Harag, Quematrice, Lunagaron.
-For these monsters you will get double the materials in the first two slots and 10 additional Rarity 1 materials from the slain monster. Group hunts give you a guaranteed second slot of monster materials.
-You want these rewards as it does boost your material gathering to make those weapos and armor faster.
+New playstyles for the Heavy Bowgun
+Heavy Bowgun receives its own style customisation this week, offering new ways to play:
+Guard Reload allows you to reload while guarding, giving you more defensive flexibility.
+Crouching Shot prioritises offence, enabling you to fire more rounds than usual for sustained pressure.
+There’s also a Heavy Bowgun style quest, which gives a material boost for both Diablos and Riftborne equipment—ideal for quick progression.
 
-Also, Deviljho is going to be appearing more frequently in volatile territories. Bazelgeuse is taking a vacation. For those of you farming Elder Dragons, Kushala Daora is the active threat at Interception points, with EDIs giving you two of each material in the first to fourth slots of basic rewards.
+Several monsters are offering enhanced rewards this week, including:
+Brute Tigrex
+Goss Harag
+Quematrice
+Lunagaron
+For these hunts, you’ll receive double materials in the first two reward slots and 10 additional Rarity 1 materials per defeated monster. Group hunts guarantee a second slot of monster materials, helping you gather what you need faster to craft weapons and armour.
+
+Deviljho is appearing more frequently in volatile territories. Bazelgeuse is taking a break and will be less active this week.
+For those farming Elder Dragons, Kushala Daora is the current active threat at Interception Points. EDI encounters now provide two of each material in the first four slots of basic rewards.
+
+Let me know in the comments:
+Which Diablos weapon are you building first?
+Which Heavy Bowgun are you customising—and which style are you going for?
